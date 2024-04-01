@@ -4,6 +4,14 @@
 
 The Stevedore demonstration is a simple project that demonstrates how to use Stevedore to build and promote Docker images.
 
+The project is provided by a Makefile that guides the user through the demonstration. The demonstration starts an environment with a Docker registry and a Git server, as well as a container that runs Stevedore. All the actions are performed by the Stevedore container, which is used to build and promote Docker images.
+
+You can run the demonstration on your local machine by executing the following command:
+
+```bash
+make start-and-demo
+```
+
 ## Contributing
 
 Thank you for your interest in contributing to Stevedore! All contributions are welcome, whether they are bug reports, feature requests, or code contributions. Please read the [contributor's guide in Stevedore documentation](https://gostevedore.github.io/docs/contribution-guidelines/) to know more about how to contribute.

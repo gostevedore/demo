@@ -1,0 +1,126 @@
+services:
+
+  registry:
+    image: registry:2
+    restart: always
+    environment:
+      - REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY=/data
+      - REGISTRY_AUTH=token
+      - REGISTRY_AUTH_TOKEN_REALM=https://auth.stevedore.test:5001/auth
+      - REGISTRY_AUTH_TOKEN_SERVICE="Docker registry"
+      - REGISTRY_AUTH_TOKEN_ISSUER="stevedore"
+      - REGISTRY_HTTP_ADDR=0.0.0.0:443
+      - REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE=/ssl/stevedore.test.crt
+      - REGISTRY_HTTP_TLS_CERTIFICATE=/ssl/stevedore.test.crt
+      - REGISTRY_HTTP_TLS_KEY=/ssl/stevedore.test.key
+    volumes:
+      - ssl:/ssl:ro
+    networks:
+      default:
+        aliases:
+          - registry.stevedore.test
+          - example.docker.com
+    depends_on: 
+      - dockerauth
+    deploy:
+      resources:
+        limits:
+          memory: 60M
+    healthcheck:
+      test: ["CMD", "nc", "-vz", "localhost","443"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  dockerauth:
+    image: cesanta/docker_auth:1
+    restart: always
+    volumes:
+      - ./docker/docker_auth:/config:ro
+      - ssl:/ssl:ro
+    command: 
+      - -logtostderr
+      - /config/config.yml
+    networks:
+      default:
+        aliases:
+          - auth.stevedore.test
+    deploy:
+      resources:
+        limits:
+          memory: 10M
+    healthcheck:
+      test: ["CMD", "nc", "-vz", "localhost","5001"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  openssh:
+    build:
+      context: docker/openssh-client
+    entrypoint: 
+      - /usr/bin/ssh-keygen
+    working_dir: /ssh
+    volumes:
+      - ssh:/ssh
+    command: ["--help"]
+    deploy:
+      resources:
+        limits:
+          memory: 10M
+
+  openssl:
+    build:
+      context: docker/openssl-client
+    entrypoint: 
+      - openssl
+    working_dir: /ssl
+    volumes:
+      - ssl:/ssl
+      - ./docker/openssl-client/files/ssl:/root/ssl
+    command: ["version"]
+    deploy:
+      resources:
+        limits:
+          memory: 10M
+
+  gitserver:
+    build:
+      context: ./docker/gitserver
+    environment:
+      - GIT_KEYS=/git/keys
+    volumes:
+      - ssh:/git/keys
+      - ./docker/gitserver/files/repos:/git/repos
+    networks:
+      default:
+        aliases:
+          - gitserver.stevedore.test
+    deploy:
+      resources:
+        limits:
+          memory: 10M
+
+  stevedore:
+    build:
+      context: ./docker/stevedore
+      args:
+        - docker_version=${DOCKER_VERSION}
+    privileged: true
+    volumes:
+      - ssl:/ssl
+      - ssh:/root/.ssh
+      - ./docker/stevedore/files/docker/daemon.json:/etc/docker/daemon.json
+      - ./docker/stevedore/files/docker/config.json:/root/.docker/config.json
+      - ./docker/stevedore/files/scripts/demo.sh:/demo.sh
+      # - ./docker/stevedore/demo:/stevedore
+    # command:
+    #   - tail
+    #   - -f
+    #   - /dev/null
+
+volumes:
+  ssh:
+  ssl:
