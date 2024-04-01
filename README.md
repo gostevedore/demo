@@ -6,10 +6,18 @@ The Stevedore demonstration is a simple project that demonstrates how to use Ste
 
 The project is provided by a Makefile that guides the user through the demonstration. The demonstration starts an environment with a Docker registry and a Git server, as well as a container that runs Stevedore. All the actions are performed by the Stevedore container, which is used to build and promote Docker images.
 
-You can run the demonstration on your local machine by executing the following command:
+You can run the demonstration on your local machine by executing the following commands:
+
+- Start the environment with the required services:
 
 ```bash
-make start-and-demo
+make start
+```
+
+- Run the demonstration:
+
+```bash
+make demo
 ```
 
 ## Contributing

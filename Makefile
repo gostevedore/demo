@@ -31,7 +31,7 @@ attach: ## Attach to the 'stevedore' service container
 	docker compose -p demo-stevedore run --rm --build stevedore sh
 
 start-and-demo: start ## Starts the environment and run the demo
-	docker compose -p demo-stevedore run --rm stevedore
+	docker compose -p demo-stevedore run --rm --build stevedore
 
 demo: ## Run the demo. It requires to have the environment up and running
 	docker compose -p demo-stevedore run --rm --build stevedore
